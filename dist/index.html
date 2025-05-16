@@ -50,12 +50,15 @@ function renderAllPatterns() {
         patternWrapper.draggable = true;
         patternWrapper.dataset.index = patternIdx.toString();
 
-        // ドラッグイベントの設定
+        // タッチとドラッグイベントの設定
         patternWrapper.addEventListener('dragstart', handleDragStart);
         patternWrapper.addEventListener('dragover', handleDragOver);
         patternWrapper.addEventListener('drop', handleDrop);
         patternWrapper.addEventListener('dragenter', handleDragEnter);
         patternWrapper.addEventListener('dragleave', handleDragLeave);
+        patternWrapper.addEventListener('touchstart', handleTouchStart);
+        patternWrapper.addEventListener('touchmove', handleTouchMove);
+        patternWrapper.addEventListener('touchend', handleTouchEnd);
 
         // タイトル
         const title = document.createElement("div");
@@ -86,6 +89,51 @@ function renderAllPatterns() {
         patternWrapper.appendChild(grid);
         floorDiv.appendChild(patternWrapper);
     });
+}
+
+let touchStartY = 0;
+let touchStartElement = null;
+let currentTouchElement = null;
+
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartY = touch.clientY;
+    touchStartElement = e.target.closest('div[draggable]');
+    touchStartElement.classList.add('dragging');
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+    const targetElement = elements.find(el => el.hasAttribute('draggable'));
+    
+    if (targetElement && targetElement !== currentTouchElement) {
+        if (currentTouchElement) {
+            currentTouchElement.classList.remove('drag-over');
+        }
+        currentTouchElement = targetElement;
+        currentTouchElement.classList.add('drag-over');
+    }
+}
+
+function handleTouchEnd(e) {
+    if (touchStartElement && currentTouchElement) {
+        const fromIdx = parseInt(touchStartElement.dataset.index);
+        const toIdx = parseInt(currentTouchElement.dataset.index);
+        
+        if (fromIdx !== toIdx) {
+            const temp = patterns[fromIdx];
+            patterns[fromIdx] = patterns[toIdx];
+            patterns[toIdx] = temp;
+            renderAllPatterns();
+        }
+    }
+    
+    touchStartElement?.classList.remove('dragging');
+    currentTouchElement?.classList.remove('drag-over');
+    touchStartElement = null;
+    currentTouchElement = null;
 }
 
 // ドラッグ&ドロップ用の関数
@@ -226,5 +274,17 @@ body {
 .problem-description li {
     margin: 0.25rem 0;
     color: #bbb;
+}
+
+/* タッチデバイス用のスタイル追加 */
+@media (pointer: coarse) {
+    .tile {
+        min-width: 36px;
+        min-height: 36px;
+    }
+    
+    [draggable] {
+        touch-action: none;
+    }
 }
 </style>
