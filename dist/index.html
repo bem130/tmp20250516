@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <title>Tile Floor Patterns</title>
+</head>
+<body>
+    <h1>Tile Floor Patterns</h1>
+    <div id="floor"></div>
+</body>
+</html>
+<script type="module">
+
+import init, { run_wasm } from "./tile_floor.js";
+
+let patterns = [];
+
+const floorDiv = document.getElementById("floor");
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await init();
+
+    const jsonStr = run_wasm();
+    try {
+        patterns = JSON.parse(jsonStr);
+    } catch (e) {
+        alert("JSON parse error: " + e);
+        return;
+    }
+
+    renderAllPatterns();
+});
+
+function renderAllPatterns() {
+    floorDiv.innerHTML = "";
+
+    patterns.forEach((pat, patternIdx) => {
+        // 各パターンを囲む div
+        const patternWrapper = document.createElement("div");
+        patternWrapper.style.marginBottom = "1rem";
+        patternWrapper.style.border = "1px solid #444";
+        patternWrapper.style.padding = "0.5rem";
+
+        // タイトル
+        const title = document.createElement("div");
+        title.textContent = `pattern ${patternIdx + 1}`;
+        title.style.marginBottom = "0.5rem";
+        patternWrapper.appendChild(title);
+
+        // グリッド
+        const grid = document.createElement("div");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "repeat(5, 24px)";
+        grid.style.gridGap = "4px";
+
+        pat.tiles.forEach(row => {
+            row.forEach(colorName => {
+                const d = document.createElement("div");
+                d.classList.add("tile", colorName);
+                grid.appendChild(d);
+            });
+
+            // 行ごとの余白
+            const spacer = document.createElement("div");
+            spacer.style.gridColumn = "1 / span 5";
+            spacer.style.height = "4px";
+            grid.appendChild(spacer);
+        });
+
+        patternWrapper.appendChild(grid);
+        floorDiv.appendChild(patternWrapper);
+    });
+}
+
+
+</script>
+<style>
+:root {
+    color-scheme: dark;
+}
+
+body {
+    background: #121212;
+    color: #f0f0f0;
+    font-family: sans-serif;
+    margin: 1rem;
+}
+
+/* パターン全体を並べるためのレイアウト */
+#floor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: start;
+}
+
+/* 各パターンカードの外枠 */
+.pattern {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0.75rem;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* パターン番号の表示 */
+.pattern-title {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #bbbbbb;
+}
+
+/* タイルグリッド（2x5） */
+.tile-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 24px);
+    grid-auto-rows: 24px;
+    gap: 4px;
+}
+
+/* タイルの見た目 */
+.tile {
+    width: 24px;
+    height: 24px;
+    border-radius: 2px;
+}
+
+.Red    { background: #b71c1c; }
+.Blue   { background: #0d47a1; }
+.Yellow { background: #f9a825; }
+
+</style>

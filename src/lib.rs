@@ -7,6 +7,8 @@
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
+use ts_rs::TS;
+use serde::Serialize;
 
 pub fn run() {
     let mut count = 0; // 適合したパターンの数
@@ -43,9 +45,48 @@ pub fn run() {
     println!("適合するパターンの数: {}", count);
 }
 
+#[cfg(feature = "wasm")]
+#[wasm_bindgen]
+pub fn run_wasm() -> String {
+    let mut match_floors = Vec::new();
+    'brute_force: for i in 0..59049 { // 全パターン 総当たり
+        // 床パターンを生成
+        let mut floor = Floor::new();
+        for r in 0..2 {
+            for c in 0..5 {
+                floor.tiles[r][c] = match nth!(i, r*5+c+1, 3) {
+                    0 => Tile::Red,
+                    1 => Tile::Blue,
+                    2 => Tile::Yellow,
+                    _ => unreachable!(),
+                };
+            }
+        }
+        // タイルの枚数を確認
+        if floor.count(Tile::Red   ) != 4 { continue 'brute_force; }
+        if floor.count(Tile::Blue  ) != 4 { continue 'brute_force; }
+        if floor.count(Tile::Yellow) != 2 { continue 'brute_force; }
+        // タイルの配置を確認
+        for r in 0..2 {
+            for c in 0..5 {
+                // 同じ色の隣接を却下
+                if floor.check_adjacent(r, c) == false { continue 'brute_force; }
+            }
+        }
+        // 適合するパターンを追加
+        match_floors.push(floor.clone());
+    }
+    // match_floorsをJsValueに変換
+    match serde_json::to_string_pretty(&match_floors) {
+        Ok(str) => str,
+        Err(v) => return format!("serializing error {}",v),
+    }
+}
+
 // 床とタイルを定義
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, TS)]
+#[ts(export, export_to = "../dist/model.ts")]
 pub enum Tile {
     // 赤青黄の3色
     Red,
@@ -53,7 +94,8 @@ pub enum Tile {
     Yellow,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, TS)]
+#[ts(export, export_to = "../dist/model.ts")]
 pub struct Floor {
     // 2行5列のタイル配置
     pub tiles: [[Tile; 5]; 2],

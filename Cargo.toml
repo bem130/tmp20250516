@@ -13,6 +13,9 @@ path = "src/main.rs"
 
 [dependencies]
 wasm-bindgen = { version = "0.2", optional = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+ts-rs = "10.0"
 
 [features]
 # CLI実行用
