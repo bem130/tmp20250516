@@ -23,11 +23,11 @@ jobs:
       - name: Install Rust
         run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Temporarily remove dist from .gitignore
-        run: sed -i '/dist/d' .gitignore
-
       - name: Build
         run: wasm-pack build --target web --out-dir dist --features wasm
+
+      - name: Temporarily remove dist from .gitignore
+        run: sed -i '/dist/d' .gitignore
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
