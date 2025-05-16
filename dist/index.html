@@ -35,11 +35,19 @@ function renderAllPatterns() {
     floorDiv.innerHTML = "";
 
     patterns.forEach((pat, patternIdx) => {
-        // 各パターンを囲む div
         const patternWrapper = document.createElement("div");
         patternWrapper.style.marginBottom = "1rem";
         patternWrapper.style.border = "1px solid #444";
         patternWrapper.style.padding = "0.5rem";
+        patternWrapper.draggable = true;
+        patternWrapper.dataset.index = patternIdx.toString();
+
+        // ドラッグイベントの設定
+        patternWrapper.addEventListener('dragstart', handleDragStart);
+        patternWrapper.addEventListener('dragover', handleDragOver);
+        patternWrapper.addEventListener('drop', handleDrop);
+        patternWrapper.addEventListener('dragenter', handleDragEnter);
+        patternWrapper.addEventListener('dragleave', handleDragLeave);
 
         // タイトル
         const title = document.createElement("div");
@@ -70,6 +78,44 @@ function renderAllPatterns() {
         patternWrapper.appendChild(grid);
         floorDiv.appendChild(patternWrapper);
     });
+}
+
+// ドラッグ&ドロップ用の関数
+function handleDragStart(e) {
+    e.target.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', e.target.dataset.index);
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    e.target.closest('div[draggable]')?.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    e.target.closest('div[draggable]')?.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const draggedIdx = parseInt(e.dataTransfer.getData('text/plain'));
+    const targetIdx = parseInt(e.target.closest('div[draggable]').dataset.index);
+    
+    if (draggedIdx !== targetIdx) {
+        // パターンの順序を入れ替え
+        const temp = patterns[draggedIdx];
+        patterns[draggedIdx] = patterns[targetIdx];
+        patterns[targetIdx] = temp;
+        
+        // 再レンダリング
+        renderAllPatterns();
+    }
+
+    document.querySelector('.dragging')?.classList.remove('dragging');
+    document.querySelector('.drag-over')?.classList.remove('drag-over');
 }
 
 
@@ -132,4 +178,20 @@ body {
 .Blue   { background: #0d47a1; }
 .Yellow { background: #f9a825; }
 
+/* ドラッグ&ドロップのスタイル */
+[draggable] {
+    cursor: move;
+    user-select: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dragging {
+    opacity: 0.5;
+    transform: scale(1.02);
+}
+
+.drag-over {
+    border-color: #666 !important;
+    box-shadow: 0 0 10px rgba(255,255,255,0.1);
+}
 </style>
