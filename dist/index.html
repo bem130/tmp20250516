@@ -15,6 +15,11 @@
         </ol>
     </div>
     <div id="floor"></div>
+    <div class="github-link">
+        <a href="https://github.com/bem130/tmp20250516" target="_blank" rel="noopener">
+            View source on GitHub
+        </a>
+    </div>
 </body>
 </html>
 <script type="module">
@@ -274,6 +279,34 @@ body {
 .problem-description li {
     margin: 0.25rem 0;
     color: #bbb;
+}
+
+/* GitHubリンクのスタイル */
+.github-link {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.github-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #f0f0f0;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.github-link a:hover {
+    background: #2a2a2a;
+    border-color: #666;
+}
+
+.github-link svg {
+    color: #f0f0f0;
 }
 
 /* タッチデバイス用のスタイル追加 */
