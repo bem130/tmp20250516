@@ -26,13 +26,14 @@ jobs:
       - name: Build
         run: wasm-pack build --target web --out-dir dist --features wasm
 
-      - name: Temporarily remove dist from .gitignore
-        run: sed -i '/dist/d' .gitignore
+      - name: Remove all .gitignore files
+        run: |
+          find . -name ".gitignore" -type f -delete
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          publish_dir: ./dist
           force_orphan: true
           allow_empty_commit: true
