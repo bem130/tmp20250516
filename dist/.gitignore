@@ -1,6 +1,1 @@
-*.js
-*.wasm
-*.d.ts
-*.json
-
-model.ts
+*
