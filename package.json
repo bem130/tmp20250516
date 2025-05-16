@@ -1,0 +1,15 @@
+{
+  "name": "tile_floor",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "tile_floor_bg.wasm",
+    "tile_floor.js",
+    "tile_floor.d.ts"
+  ],
+  "main": "tile_floor.js",
+  "types": "tile_floor.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

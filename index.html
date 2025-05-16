@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Tile Floor Patterns</title>
+</head>
+<body>
+    <h1>Tile Floor Patterns</h1>
+    <div class="problem-description">
+        <h2>Problem</h2>
+        <p>Place red, blue, and yellow tiles on a 2×5 floor grid.</p>
+        <ol>
+            <li>Use 4 red tiles, 4 blue tiles, and 2 yellow tiles.</li>
+            <li>Tiles of the same color cannot be adjacent to each other.</li>
+        </ol>
+    </div>
+    <div id="floor"></div>
+    <div class="github-link">
+        <a href="https://github.com/bem130/tmp20250516" target="_blank" rel="noopener">
+            View source on GitHub
+        </a>
+    </div>
+</body>
+</html>
+<script type="module">
+
+import init, { run_wasm } from "./tile_floor.js";
+
+let patterns = [];
+
+const floorDiv = document.getElementById("floor");
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await init();
+
+    const jsonStr = run_wasm();
+    try {
+        patterns = JSON.parse(jsonStr);
+    } catch (e) {
+        alert("JSON parse error: " + e);
+        return;
+    }
+
+    renderAllPatterns();
+});
+
+function renderAllPatterns() {
+    floorDiv.innerHTML = "";
+
+    patterns.forEach((pat, patternIdx) => {
+        const patternWrapper = document.createElement("div");
+        patternWrapper.style.marginBottom = "1rem";
+        patternWrapper.style.border = "1px solid #444";
+        patternWrapper.style.padding = "0.5rem";
+        patternWrapper.draggable = true;
+        patternWrapper.dataset.index = patternIdx.toString();
+
+        // タッチとドラッグイベントの設定
+        patternWrapper.addEventListener('dragstart', handleDragStart);
+        patternWrapper.addEventListener('dragover', handleDragOver);
+        patternWrapper.addEventListener('drop', handleDrop);
+        patternWrapper.addEventListener('dragenter', handleDragEnter);
+        patternWrapper.addEventListener('dragleave', handleDragLeave);
+        patternWrapper.addEventListener('touchstart', handleTouchStart);
+        patternWrapper.addEventListener('touchmove', handleTouchMove);
+        patternWrapper.addEventListener('touchend', handleTouchEnd);
+
+        // タイトル
+        const title = document.createElement("div");
+        title.textContent = `pattern ${patternIdx + 1}`;
+        title.style.marginBottom = "0.5rem";
+        patternWrapper.appendChild(title);
+
+        // グリッド
+        const grid = document.createElement("div");
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "repeat(5, 24px)";
+        grid.style.gridGap = "4px";
+
+        pat.tiles.forEach(row => {
+            row.forEach(colorName => {
+                const d = document.createElement("div");
+                d.classList.add("tile", colorName);
+                grid.appendChild(d);
+            });
+
+            // 行ごとの余白
+            const spacer = document.createElement("div");
+            spacer.style.gridColumn = "1 / span 5";
+            spacer.style.height = "4px";
+            grid.appendChild(spacer);
+        });
+
+        patternWrapper.appendChild(grid);
+        floorDiv.appendChild(patternWrapper);
+    });
+}
+
+let touchStartY = 0;
+let touchStartElement = null;
+let currentTouchElement = null;
+
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartY = touch.clientY;
+    touchStartElement = e.target.closest('div[draggable]');
+    touchStartElement.classList.add('dragging');
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+    const targetElement = elements.find(el => el.hasAttribute('draggable'));
+    
+    if (targetElement && targetElement !== currentTouchElement) {
+        if (currentTouchElement) {
+            currentTouchElement.classList.remove('drag-over');
+        }
+        currentTouchElement = targetElement;
+        currentTouchElement.classList.add('drag-over');
+    }
+}
+
+function handleTouchEnd(e) {
+    if (touchStartElement && currentTouchElement) {
+        const fromIdx = parseInt(touchStartElement.dataset.index);
+        const toIdx = parseInt(currentTouchElement.dataset.index);
+        
+        if (fromIdx !== toIdx) {
+            const temp = patterns[fromIdx];
+            patterns[fromIdx] = patterns[toIdx];
+            patterns[toIdx] = temp;
+            renderAllPatterns();
+        }
+    }
+    
+    touchStartElement?.classList.remove('dragging');
+    currentTouchElement?.classList.remove('drag-over');
+    touchStartElement = null;
+    currentTouchElement = null;
+}
+
+// ドラッグ&ドロップ用の関数
+function handleDragStart(e) {
+    e.target.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', e.target.dataset.index);
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    e.target.closest('div[draggable]')?.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    e.target.closest('div[draggable]')?.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const draggedIdx = parseInt(e.dataTransfer.getData('text/plain'));
+    const targetIdx = parseInt(e.target.closest('div[draggable]').dataset.index);
+    
+    if (draggedIdx !== targetIdx) {
+        // パターンの順序を入れ替え
+        const temp = patterns[draggedIdx];
+        patterns[draggedIdx] = patterns[targetIdx];
+        patterns[targetIdx] = temp;
+        
+        // 再レンダリング
+        renderAllPatterns();
+    }
+
+    document.querySelector('.dragging')?.classList.remove('dragging');
+    document.querySelector('.drag-over')?.classList.remove('drag-over');
+}
+
+
+</script>
+<style>
+:root {
+    color-scheme: dark;
+}
+
+body {
+    background: #121212;
+    color: #f0f0f0;
+    font-family: sans-serif;
+    margin: 1rem;
+}
+
+/* パターン全体を並べるためのレイアウト */
+#floor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: start;
+}
+
+/* 各パターンカードの外枠 */
+.pattern {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0.75rem;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* パターン番号の表示 */
+.pattern-title {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #bbbbbb;
+}
+
+/* タイルグリッド（2x5） */
+.tile-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 24px);
+    grid-auto-rows: 24px;
+    gap: 4px;
+}
+
+/* タイルの見た目 */
+.tile {
+    width: 24px;
+    height: 24px;
+    border-radius: 2px;
+}
+
+.Red    { background: #b71c1c; }
+.Blue   { background: #0d47a1; }
+.Yellow { background: #f9a825; }
+
+/* ドラッグ&ドロップのスタイル */
+[draggable] {
+    cursor: move;
+    user-select: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dragging {
+    opacity: 0.5;
+    transform: scale(1.02);
+}
+
+.drag-over {
+    border-color: #666 !important;
+    box-shadow: 0 0 10px rgba(255,255,255,0.1);
+}
+
+/* 問題文のスタイル */
+.problem-description {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.problem-description h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #ddd;
+}
+
+.problem-description ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.problem-description li {
+    margin: 0.25rem 0;
+    color: #bbb;
+}
+
+/* GitHubリンクのスタイル */
+.github-link {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.github-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #f0f0f0;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.github-link a:hover {
+    background: #2a2a2a;
+    border-color: #666;
+}
+
+.github-link svg {
+    color: #f0f0f0;
+}
+
+/* タッチデバイス用のスタイル追加 */
+@media (pointer: coarse) {
+
+    [draggable] {
+        touch-action: none;
+    }
+}
+</style>
