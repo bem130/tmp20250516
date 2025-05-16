@@ -29,6 +29,13 @@ jobs:
       - name: Build
         run: wasm-pack build --target web --out-dir dist --features wasm
 
+      - name: Initialize gh-pages branch if not exists
+        run: |
+          git checkout --orphan gh-pages || echo "Branch already exists"
+          git reset --hard
+          git commit --allow-empty -m "Initial commit"
+          git push origin gh-pages || echo "Branch already initialized"
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
