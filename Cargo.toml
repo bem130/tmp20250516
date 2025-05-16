@@ -1,6 +1,22 @@
 [package]
-name = "tmp20250516"
+name = "tile_floor"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "tile_floor"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "tile_floor_cli"
+path = "src/main.rs"
+
 [dependencies]
+wasm-bindgen = { version = "0.2", optional = true }
+
+[features]
+# CLI実行用
+default = ["cli"]
+cli     = []
+# WASMビルド用
+wasm    = ["wasm-bindgen"]
