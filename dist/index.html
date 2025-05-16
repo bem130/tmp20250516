@@ -1,11 +1,19 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <title>Tile Floor Patterns</title>
 </head>
 <body>
     <h1>Tile Floor Patterns</h1>
+    <div class="problem-description">
+        <h2>Problem</h2>
+        <p>Place red, blue, and yellow tiles on a 2×5 floor grid.</p>
+        <ol>
+            <li>Use 4 red tiles, 4 blue tiles, and 2 yellow tiles.</li>
+            <li>Tiles of the same color cannot be adjacent to each other.</li>
+        </ol>
+    </div>
     <div id="floor"></div>
 </body>
 </html>
@@ -193,5 +201,30 @@ body {
 .drag-over {
     border-color: #666 !important;
     box-shadow: 0 0 10px rgba(255,255,255,0.1);
+}
+
+/* 問題文のスタイル */
+.problem-description {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.problem-description h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #ddd;
+}
+
+.problem-description ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.problem-description li {
+    margin: 0.25rem 0;
+    color: #bbb;
 }
 </style>
